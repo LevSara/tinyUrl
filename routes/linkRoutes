@@ -1,0 +1,41 @@
+const express= require('express');
+const router = express.Router();//the instance of express.Router() to group routes and export them as a module
+const linkController = require('../controllers/linkController.js');
+const authMiddleware = require('../middleware/authMiddleware.js');  
+const POST = 3000;
+const authController = require('../controllers/authController.js');
+
+// Route to create a new short link
+router.post('/links', linkController.createShortLink);
+//POST - register a new user
+router.post('localhost:3000/auth/register',authController.registerUser);
+
+// POST - login a user
+router.post('localhost:3000/auth/login', authMiddleware, authController.login);
+
+// POST - create a new short link
+router.post('/links', linkController.createShortLink);
+
+//POST - create a new short link with source just for the authenticated user
+//where in the path is it reflected that the user is authenticated?
+router.post('/links', authMiddleware, linkController.createShortLinkWithSource);
+
+
+
+// GET - get all links for the authenticated user
+router.get('/links', authMiddleware, linkController.getAllLinks);
+
+// GET - get details of specific link by ID
+router.get('/links/:id', authMiddleware, linkController.getDetailsLinkById);
+
+//PUT - update a specific link by ID of link
+router.put('/links/:id', authMiddleware, linkController.updateLink);
+
+// DELETE - delete a specific link by ID
+router.delete('/links/:id', authMiddleware, linkController.deleteLink);
+
+// GET - redirect to the original URL
+router.get('/:shortCode', linkController.redirectToPriginalUrl);
+//why it said in the linkController.js that the redirectToPriginalUrl is not used?
+
+
