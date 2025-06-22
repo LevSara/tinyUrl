@@ -4,11 +4,11 @@ import authMiddleware from '../middleware/authMiddleware.js'; // Assuming authMi
 import { // Import specific named exports from linkController.js for authenticated API
     createShortLink, // If you want an authenticated version too (POST /api/links)
     getDetailsLinkById,
-    updateLink,
+    // updateLink,
     deleteLink,
     getAllLinks,
     getClicksOfLink,
-    createShortLinkWithSource,
+    createAuthenticatedShortLink,
     getClicksOfLinkBySource // Corrected typo here
 } from '../controllers/linkController.js';
 import { registerUser, login } from '../controllers/authController.js'; 
@@ -27,11 +27,11 @@ router.delete('/users/:id', authMiddleware, deleteUser); // DELETE - Delete user
 // LINK ROUTES 
 
 
-router.post('/auth/user', authMiddleware, createShortLinkWithSource); // POST - create a new short link with source just for an authenticated user
+router.post('/auth/user', authMiddleware, createAuthenticatedShortLink); // POST - create a new short link with source just for an authenticated user
 router.get('/links', authMiddleware, getAllLinks); // GET - get all links for the authenticated user
 router.get('/links/:id', authMiddleware, getDetailsLinkById); // GET - get details of specific link by ID
-router.put('/links/:id', authMiddleware, updateLink); // PUT - update a specific link by ID of link
-router.patch('/links/:id', authMiddleware, updateLink); // PATCH - update a specific link by ID (partial update)
+// router.put('/links/:id', authMiddleware, updateLink); // PUT - update a specific link by ID of link
+// router.patch('/links/:id', authMiddleware, updateLink); // PATCH - update a specific link by ID (partial update)
 router.delete('/links/:id', authMiddleware, deleteLink); // DELETE - delete a specific link by ID
 
 // Click tracking routes (authenticated access to click data)

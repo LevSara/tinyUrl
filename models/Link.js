@@ -1,6 +1,19 @@
 import mongoose from 'mongoose';
 
-const LinkSchema = new mongoose.Schema({
+
+const sourceClickSchema = new mongoose.Schema({
+  name:{
+  type:String,
+  required:true,
+  },
+  clicks:{
+    type:Number,
+    default:0,
+  }
+},{_id:false});
+
+
+const linkSchema = new mongoose.Schema({
   originalUrl: {
     type: String,
     trim: true,
@@ -10,22 +23,23 @@ const LinkSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-  },
-  numOfClicks: {
-    type: Number,
-    default: 0,
-  },
+  },  
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: false,
   },
-
-  clicksBySource: {
-    type: Map,
-    of: Number,
-    default: () => new Map(),
+  clicks: {
+    type: Number,
+    default: 0,
   },
+
+  sources: { 
+        type: [sourceClickSchema], 
+        default: [],    
+    },
+
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -33,4 +47,4 @@ const LinkSchema = new mongoose.Schema({
 
 });
 
-export default mongoose.model('Link', LinkSchema);
+export default mongoose.model('Link', linkSchema);
