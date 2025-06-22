@@ -1,5 +1,6 @@
-const mongoose=require('mongoose');
-require('dontnev').config();//load environment variables from .env file
+import mongoose from 'mongoose';
+import 'dotenv/config'; // Automatically load environment variables from .env file
+
 const connectDB=async()=>{
     try{
         await mongoose.connect(process.env.MONGO_URI, {
@@ -13,5 +14,4 @@ const connectDB=async()=>{
     }
 };
 
-module.exports=connectDB; // Export the connectDB function for use in other files
-// This code connects to a MongoDB database using Mongoose.
+export default connectDB;

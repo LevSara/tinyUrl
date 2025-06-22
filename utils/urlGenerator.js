@@ -1,3 +1,5 @@
+import {nanoid} from 'nanoid';
+
 const generateUniqueShortUrl = async () => {
     let shortUrl = '';
     let isUnique = false;
@@ -12,4 +14,4 @@ const generateUniqueShortUrl = async () => {
     return shortUrl; // Return the unique short URL
 }
 
-exports.generateUniqueShortUrl = generatUniqeShorteUrl;// Export the function for use in other parts of the application
+export default generateUniqueShortUrl;

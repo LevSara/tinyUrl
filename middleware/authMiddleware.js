@@ -1,5 +1,7 @@
-const jwt = requeir('jsonwebtoken');
-const User = require('../models/User');
+import pkg from 'jsonwebtoken';
+const { verify} = pkg;
+import User from '../models/User.js';
+
 
 const authMiddleware = async (req, res, next) => {
     if (!req.headers.authorization||!req.headers.authorization.startsWith('Bearer ')) {       
@@ -14,7 +16,7 @@ const authMiddleware = async (req, res, next) => {
     }
     try {
         //verify the token
-        const decode = jwt.verify(token, process.env.JWT_SECRET);
+        const decode = verify(token, process.env.JWT_SECRET);
         if (!decode || !decode.id) {
             return res.status(401).json({ error: 'Unauthorized access, invalid information' });
         }
@@ -36,4 +38,4 @@ const authMiddleware = async (req, res, next) => {
         return res.status(401).json({ error: 'Unauthorized access, invalid token' });
     }
 }
-module.exports = authMiddleware;
+export default authMiddleware;
