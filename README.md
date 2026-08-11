@@ -2,6 +2,23 @@
 
 TinyURL is a Node.js backend for creating short links, redirecting visitors, and tracking click totals by referral source. It exposes public shortening and redirect endpoints plus authenticated account and link-management endpoints.
 
+## Live API
+
+The API is deployed as a portfolio demonstration on Render:
+
+**https://tinyurl-pup3.onrender.com**
+
+The health endpoint returns:
+
+```json
+{
+  "name": "TinyURL API",
+  "status": "ok"
+}
+```
+
+The hosted service uses Render's free instance type. After approximately 15 minutes without incoming traffic, it may spin down. The first request after an idle period can take about one minute while the service starts and reconnects to MongoDB Atlas.
+
 ## Features
 
 - Create generated or custom short codes
@@ -124,4 +141,5 @@ Only `originalUrl` is required. For compatibility, the existing `customerShortCo
 - Click counters use a read-modify-save flow; atomic updates would be preferable under high concurrency.
 - There is no rate limiting, refresh-token flow, password recovery, pagination, or link expiration.
 - The current tests focus on business behavior with model doubles. Integration tests against an isolated MongoDB instance would add confidence in indexes and persistence.
-- A production deployment should add structured logging, HTTPS at the edge, secure secret management, monitoring, and abuse controls.
+- The Render deployment is intended for portfolio evaluation rather than production traffic.
+- Production-scale use would require structured logging, managed secrets, monitoring, and abuse controls.
