@@ -1,60 +1,47 @@
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt'; // Add this
-import jwt from 'jsonwebtoken'; // Add this
 
-
-const UserSchema = new mongoose.Schema({
-  userName: {
-    type: String,
-    required: true,
-    unique:true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true, // Ensure emails are unique
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  links: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Link',
+const userSchema = new mongoose.Schema(
+  {
+    userName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
+      unique: true,
     },
-  ],
-    // required: false,
-}, {
-  timestamps: true ,// Adds createdAt and updatedAt to User document
-    // required: false,
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+      select: false,
+    },
+    links: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Link' }],
+  },
+  { timestamps: true },
+);
 
-});
-
-
-// Method to hash the password before saving
-UserSchema.pre('save', async function (next) {
+userSchema.pre('save', async function hashPassword() {
   if (this.isModified('password')) {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await bcrypt.hash(this.password, 10);
   }
-  next();
 });
-//mehod to compare passwrods
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  // 'this.password' refers to the hashed password of the user instance
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-// Method to generate the JWT token
-UserSchema.methods.generateAuthToken = function () {
-  const token = jwt.sign(
-    { id: this._id },
-    process.env.JWT_SECRET, // Ensure you have a JWT_SECRET in your environment variables
-  { expiresIn: '1h' } // Token valid for 24 hours
-  );
-  return token;
+
+userSchema.methods.comparePassword = function comparePassword(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
+userSchema.methods.generateAuthToken = function generateAuthToken() {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
 
-
-export default mongoose.model('User', UserSchema);
+export default mongoose.model('User', userSchema);

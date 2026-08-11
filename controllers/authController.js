@@ -1,75 +1,46 @@
 import User from '../models/User.js';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const login = async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+export const login = async (req, res) => {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const { password } = req.body;
+  if (!EMAIL_PATTERN.test(email) || typeof password !== 'string') {
+    return res.status(400).json({ error: 'A valid email and password are required' });
+  }
+  try {
+    const user = await User.findOne({ email }).select('+password');
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
-    try {
-        console.log('in login in try')
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-         console.log('in login befor is match')
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(401).json({ error: 'Invalid password' });
-        }
-                 console.log('in login befor token')
-        const token = user.generateAuthToken();
-                 console.log('in llogin after token before return 200')
-        return res.status(200).json({
-            message: 'Login successful',
-            token: token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email
-            },
-        });
-    } catch (error) {
-                 console.log('in login in catch')
-        console.error('Error logging in:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+    return res.status(200).json({
+      message: 'Login successful',
+      token: user.generateAuthToken(),
+      user: { id: user._id, userName: user.userName, email: user.email },
+    });
+  } catch {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const registerUser = async (req, res) => {
+  const userName = typeof req.body.userName === 'string' ? req.body.userName.trim() : '';
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const { password } = req.body;
+  if (userName.length < 2 || userName.length > 50 || !EMAIL_PATTERN.test(email) || typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'userName (2-50 characters), a valid email, and password (at least 8 characters) are required' });
+  }
+  try {
+    const user = await User.create({ userName, email, password });
+    return res.status(201).json({
+      message: 'User registered successfully',
+      token: user.generateAuthToken(),
+      user: { id: user._id, userName: user.userName, email: user.email },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ error: 'The username or email is already registered' });
     }
-}
-
-
-const registerUser = async (req, res) => {
-    const { userName, email, password } = req.body;
-
-    if (!userName || !email || !password) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-        console.log('in register befor try')
-
-    try {
-        const newUser = new User({
-             userName,
-            email,
-            password
-        });
-
-        const savedUser = await newUser.save();
-        const token = savedUser.generateAuthToken();
-        console.log('in register before return 200')
-
-        return res.status(201).json({
-            message: 'User registered successfully',
-            token:token,
-            user: {
-                id: savedUser._id,
-                name: savedUser.userName,
-                email: savedUser.email
-            }
-        });
-    } catch (error) {
-                console.log('in register before return error')
-        console.error('Error registering user:', error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-}
-
-export { registerUser, login };
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
