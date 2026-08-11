@@ -1,12 +1,12 @@
 # TinyURL API
 
-TinyURL is a Node.js backend for creating short links, redirecting visitors, and tracking click totals by referral source. It exposes public shortening and redirect endpoints plus authenticated account and link-management endpoints.
+A deployed and tested backend service for creating short links, securing user-owned resources, redirecting visitors, and tracking click attribution.
+
+This project demonstrates practical backend engineering with Node.js, Express, MongoDB, authentication, data validation, automated testing, and cloud deployment.
 
 ## Live API
 
-The API is deployed as a portfolio demonstration on Render:
-
-**https://tinyurl-pup3.onrender.com**
+**[Open the deployed API](https://tinyurl-pup3.onrender.com)**
 
 The health endpoint returns:
 
@@ -17,7 +17,18 @@ The health endpoint returns:
 }
 ```
 
-The hosted service uses Render's free instance type. After approximately 15 minutes without incoming traffic, it may spin down. The first request after an idle period can take about one minute while the service starts and reconnects to MongoDB Atlas.
+> The demo uses Render's free instance type. After an idle period, the first request can take about one minute while the service starts and reconnects to MongoDB Atlas.
+
+## Engineering highlights
+
+| Area | Implementation |
+| --- | --- |
+| API design | Public redirect/creation routes and authenticated resource-management endpoints |
+| Security | bcrypt password hashing, expiring JWTs, password exclusion, ownership checks, and generic login failures |
+| Data integrity | Mongoose schemas, validation, unique short-code index, and bounded collision retries |
+| Reliability | Awaited database startup, centralized input validation, request-size limits, and consistent JSON errors |
+| Testing | 13 automated tests covering validation, authentication failures, creation, collisions, redirects, analytics, and database errors |
+| Deployment | Render web service connected securely to MongoDB Atlas through environment configuration and IP allowlisting |
 
 ## Features
 
@@ -38,7 +49,22 @@ The hosted service uses Render's free instance type. After approximately 15 minu
 - nanoid
 - Node.js built-in test runner
 
-## Structure
+## Architecture
+
+```mermaid
+flowchart LR
+    Client["API client / browser"] --> Routes["Express routes"]
+    Routes --> Public["Public link controllers"]
+    Routes --> Auth["JWT authentication middleware"]
+    Auth --> Protected["Protected user and link controllers"]
+    Public --> Models["Mongoose models"]
+    Protected --> Models
+    Models --> Atlas["MongoDB Atlas"]
+```
+
+The Express application is exported independently from `startServer`, keeping HTTP behavior testable without opening a network port or requiring a live database.
+
+## Repository tour
 
 ```text
 config/       Database connection
@@ -52,7 +78,13 @@ utils/       Validation and short-code generation
 index.js     Express application and startup
 ```
 
-The Express application is exported independently from `startServer`, keeping startup and database connection concerns separate from request handling.
+Useful starting points for a technical review:
+
+- [`index.js`](index.js) - application composition and safe startup
+- [`controllers/linkController.js`](controllers/linkController.js) - short-link business behavior and analytics
+- [`middleware/authMiddleware.js`](middleware/authMiddleware.js) - JWT validation
+- [`utils/validation.js`](utils/validation.js) - reusable request validation
+- [`test/`](test/) - focused automated tests
 
 ## Prerequisites
 
@@ -86,14 +118,14 @@ npm start
 
 The default address is `http://localhost:3000`. A successful `GET /` returns a small health response.
 
-## Checks
+## Quality checks
 
 ```bash
 npm test
 npm run lint
 ```
 
-The tests do not require MongoDB: database model methods are replaced with deterministic test doubles. `npm run lint` checks the syntax of every project JavaScript file.
+The 13 tests do not require MongoDB: database model methods are replaced with deterministic test doubles. `npm run lint` checks the syntax of every project JavaScript file.
 
 ## API
 
